@@ -504,3 +504,19 @@ textarea {
   margin-bottom: 10px;
   color: #6c63ff;
 }
+
+.botao-google {
+  background-color: #6c63ff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 15px;
+}
+
+.botao-google:hover {
+  background-color: #f5a623;
+}

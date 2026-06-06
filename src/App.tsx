@@ -934,7 +934,7 @@ export default function App() {
     if (localizacao) {
       const fetchWeather = async () => {
         try {
-          const apiKey = "8f276c12f2c8d234d3d1911faef8ee97";
+          const apiKey = process.env.OPENWEATHER_API_KEY || "";
           const response = await fetch(
             `https://api.openweathermap.org/data/2.5/weather?lat=${localizacao.latitude}&lon=${localizacao.longitude}&units=metric&lang=pt_br&appid=${apiKey}`
           );
@@ -1104,6 +1104,8 @@ export default function App() {
       console.error('Error getting auth URL:', error);
     }
   };
+
+  const loginGoogle = handleGoogleAuth;
 
   const addCalendarEvent = (event: Omit<CalendarEvent, 'id' | 'source'>) => {
     const newEvent: CalendarEvent = {
@@ -2821,15 +2823,17 @@ export default function App() {
                 </div>
                 
                 <div className="h-[250px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ReBarChart data={workVisitsData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600 }} />
-                      <ReTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                      <Bar dataKey="visits" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={40} />
-                    </ReBarChart>
-                  </ResponsiveContainer>
+                  {workVisitsData && workVisitsData.length > 0 && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ReBarChart data={workVisitsData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600 }} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600 }} />
+                        <ReTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                        <Bar dataKey="visits" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={40} />
+                      </ReBarChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
                 <p className="text-xs text-gray-500 font-medium italic">"A intensidade das visitas no Rio de Janeiro está 20% acima da média mensal."</p>
               </div>
@@ -2851,34 +2855,38 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4 h-[250px]">
                   <div className="w-full h-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RePieChart>
-                        <Pie
-                          data={financialPieData}
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {financialPieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <ReTooltip />
-                      </RePieChart>
-                    </ResponsiveContainer>
+                    {financialPieData && financialPieData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RePieChart>
+                          <Pie
+                            data={financialPieData}
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {financialPieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <ReTooltip />
+                        </RePieChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                   <div className="w-full h-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ReLineChart data={financialLineData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="name" hide />
-                        <YAxis hide />
-                        <ReTooltip />
-                        <Line type="monotone" dataKey="receita" stroke="#10b981" strokeWidth={3} dot={false} />
-                        <Line type="monotone" dataKey="despesa" stroke="#ef4444" strokeWidth={3} dot={false} />
-                      </ReLineChart>
-                    </ResponsiveContainer>
+                    {financialLineData && financialLineData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ReLineChart data={financialLineData}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="name" hide />
+                          <YAxis hide />
+                          <ReTooltip />
+                          <Line type="monotone" dataKey="receita" stroke="#10b981" strokeWidth={3} dot={false} />
+                          <Line type="monotone" dataKey="despesa" stroke="#ef4444" strokeWidth={3} dot={false} />
+                        </ReLineChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2951,24 +2959,26 @@ export default function App() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
                     <div className="h-[200px] flex items-center justify-center relative">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RadialBarChart 
-                          cx="50%" 
-                          cy="100%" 
-                          innerRadius="80%" 
-                          outerRadius="120%" 
-                          barSize={20} 
-                          data={salesProgressData} 
-                          startAngle={180} 
-                          endAngle={0}
-                        >
-                          <RadialBar
-                            background
-                            dataKey="value"
-                            cornerRadius={10}
-                          />
-                        </RadialBarChart>
-                      </ResponsiveContainer>
+                      {salesProgressData && salesProgressData.length > 0 && (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RadialBarChart 
+                            cx="50%" 
+                            cy="100%" 
+                            innerRadius="80%" 
+                            outerRadius="120%" 
+                            barSize={20} 
+                            data={salesProgressData} 
+                            startAngle={180} 
+                            endAngle={0}
+                          >
+                            <RadialBar
+                              background
+                              dataKey="value"
+                              cornerRadius={10}
+                            />
+                          </RadialBarChart>
+                        </ResponsiveContainer>
+                      )}
                       <div className="absolute bottom-4 text-center">
                         <p className="text-3xl font-black">{salesPercentage}%</p>
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">da meta atingida</p>
@@ -4219,41 +4229,45 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[300px]">
                   <div>
                     <h3 className="text-xs font-bold opacity-40 uppercase tracking-widest mb-4 text-center">Gastos por Categoria</h3>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RePieChart>
-                        <Pie
-                          data={pieData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {pieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <ReTooltip contentStyle={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', color: 'var(--text-color)' }} />
-                        <Legend />
-                      </RePieChart>
-                    </ResponsiveContainer>
+                    {pieData && pieData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RePieChart>
+                          <Pie
+                            data={pieData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {pieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <ReTooltip contentStyle={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', color: 'var(--text-color)' }} />
+                          <Legend />
+                        </RePieChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                   <div>
                     <h3 className="text-xs font-bold opacity-40 uppercase tracking-widest mb-4 text-center">Fluxo Mensal</h3>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ReBarChart data={barData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-color)', opacity: 0.5 }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-color)', opacity: 0.5 }} />
-                        <ReTooltip contentStyle={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', color: 'var(--text-color)' }} />
-                        <Bar dataKey="valor" radius={[10, 10, 0, 0]}>
-                          {barData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Bar>
-                      </ReBarChart>
-                    </ResponsiveContainer>
+                    {barData && barData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ReBarChart data={barData}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-color)', opacity: 0.5 }} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-color)', opacity: 0.5 }} />
+                          <ReTooltip contentStyle={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', color: 'var(--text-color)' }} />
+                          <Bar dataKey="valor" radius={[10, 10, 0, 0]}>
+                            {barData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Bar>
+                        </ReBarChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
               </div>
@@ -4772,6 +4786,10 @@ export default function App() {
                   </span>
                 </div>
               )}
+
+              <button onClick={loginGoogle} className="botao-google">
+                🔄 Sincronizar Google Calendar
+              </button>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
