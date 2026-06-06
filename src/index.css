@@ -520,3 +520,16 @@ textarea {
 .botao-google:hover {
   background-color: #f5a623;
 }
+
+.card-mes {
+  background-color: #1e1e2f;
+  border: 1px solid #333;
+  border-radius: 10px;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.card-mes:hover {
+  background-color: #6c63ff;
+  transform: scale(1.03);
+}

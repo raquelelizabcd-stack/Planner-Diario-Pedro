@@ -549,6 +549,7 @@ export default function App() {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [mesSelecionado, setMesSelecionado] = useState<number | null>(null);
 
   // Estados para os modais financeiros
   const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
@@ -4298,17 +4299,39 @@ export default function App() {
         );
       }
       case 'prestacao-de-contas': {
+        const meses = [
+          "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+          "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ];
+
+        const filteredReceipts = mesSelecionado !== null
+          ? receipts.filter((nota) => {
+              const dateObj = new Date(nota.date + 'T00:00:00');
+              return dateObj.getMonth() === mesSelecionado;
+            })
+          : [];
+
         return (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8 pb-20">
             <div className="card-custom p-8 text-white" style={{ backgroundColor: '#1e1e2f' }}>
-              <div className="flex items-center gap-3 mb-8">
-                <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
-                  <Wallet size={22} />
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
+                    <Wallet size={22} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Prestação de Contas</h3>
+                    <p className="text-xs text-slate-400 font-medium">Gerencie e envie comprovantes fiscais</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold">Prestação de Contas</h3>
-                  <p className="text-xs text-slate-400 font-medium">Gerencie e envie comprovantes fiscais</p>
-                </div>
+                {mesSelecionado !== null && (
+                  <button 
+                    onClick={() => setMesSelecionado(null)} 
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 transition-all cursor-pointer"
+                  >
+                    ← Voltar para as Pastas
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -4352,32 +4375,59 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Galeria de Comprovantes ({receipts.length})</h4>
-                
-                {receipts.length === 0 ? (
-                  <div className="p-8 border border-slate-800 rounded-2xl text-center text-slate-500 italic text-xs">
-                    Nenhuma nota fiscal armazenada até o momento.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    {receipts.map((nota) => (
-                      <div key={nota.id} className="relative group bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 hover:border-slate-600 transition-all shadow-sm">
-                        <img src={nota.url} alt="Comprovante Fiscal" className="w-full h-28 object-cover" />
-                        <div className="p-2 bg-slate-900/90 flex flex-col gap-1">
-                          <span className="text-[9px] text-slate-400 font-medium">{nota.date}</span>
-                        </div>
-                        <button 
-                          onClick={() => removerNota(nota.id)}
-                          className="absolute top-2 right-2 p-1.5 bg-red-600/90 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+              {mesSelecionado === null ? (
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Pastas Mensais</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {meses.map((mes, index) => {
+                      const count = receipts.filter(nota => {
+                        const dateObj = new Date(nota.date + 'T00:00:00');
+                        return dateObj.getMonth() === index;
+                      }).length;
+
+                      return (
+                        <div 
+                          key={index} 
+                          onClick={() => setMesSelecionado(index)} 
+                          className="card-mes p-6 rounded-lg text-center cursor-pointer hover:bg-[#2a2a3d] transition"
                         >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    ))}
+                          <h4 className="text-lg font-bold text-white">{mes}</h4>
+                          <p className="text-xs text-gray-400 mt-2">{count} {count === 1 ? 'comprovante' : 'comprovantes'}</p>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Galeria de Comprovantes - {meses[mesSelecionado]} ({filteredReceipts.length})
+                  </h4>
+                  
+                  {filteredReceipts.length === 0 ? (
+                    <div className="p-8 border border-slate-800 rounded-2xl text-center text-slate-500 italic text-xs">
+                      Nenhum comprovante armazenado em {meses[mesSelecionado]}.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                      {filteredReceipts.map((nota) => (
+                        <div key={nota.id} className="relative group bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 hover:border-slate-600 transition-all shadow-sm">
+                          <img src={nota.url} alt="Comprovante Fiscal" className="w-full h-28 object-cover" />
+                          <div className="p-2 bg-slate-900/90 flex flex-col gap-1">
+                            <span className="text-[9px] text-slate-400 font-medium">{nota.date}</span>
+                          </div>
+                          <button 
+                            onClick={() => removerNota(nota.id)}
+                            className="absolute top-2 right-2 p-1.5 bg-red-600/90 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         );
