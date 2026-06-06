@@ -1,0 +1,506 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+.modal-financeiro {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-conteudo {
+  background-color: #1e1e2f;
+  color: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  width: 400px;
+  box-shadow: 0 0 15px rgba(255, 165, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideUp 0.3s ease-in-out;
+}
+
+.modal-conteudo h3 {
+  margin-bottom: 10px;
+  color: #f5a623;
+  text-align: center;
+}
+
+.modal-conteudo input {
+  background-color: #2a2a3d;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.modal-conteudo input::placeholder {
+  color: #aaa;
+}
+
+.modal-botoes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.modal-botoes button {
+  background-color: #f5a623;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.modal-botoes button:hover {
+  background-color: #ffb84d;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.botao-excluir {
+  background-color: transparent;
+  color: #ff4d4d;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.3s ease;
+}
+
+.botao-excluir:hover {
+  color: #ff8080;
+}
+
+select.select-periodo {
+  background-color: #2a2a3d;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  border: none;
+  font-size: 14px;
+}
+
+.label-data {
+  color: #f5a623;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+input[type="date"] {
+  background-color: #2a2a3d;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  color: #fff;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.modal-agenda {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.cidade-nome {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f5a623; /* Laranja vibrante do tema */
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: inline-block;
+  text-align: center;
+  letter-spacing: 0.5px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cidade-nome:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(245, 166, 35, 0.6);
+}
+
+.label-hora {
+  color: #f5a623;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+input[type="time"] {
+  background-color: #2a2a3d;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  color: #fff;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.label-observacoes {
+  color: #f5a623;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+textarea {
+  background-color: #2a2a3d;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  color: #fff;
+  font-size: 14px;
+  resize: vertical;
+  margin-top: 5px;
+}
+
+.modal-planejamento {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.botoes-planejamento {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.botao-editar {
+  background-color: #f5a623;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.botao-editar:hover {
+  background-color: #ffb84d;
+}
+
+.botao-excluir {
+  background-color: #ff4d4d;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.botao-excluir:hover {
+  background-color: #ff8080;
+}
+
+.opcao-rota {
+  margin-top: 10px;
+  color: #f5a623;
+  font-size: 14px;
+}
+
+.nova-rota-campos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.nova-rota-campos input {
+  background-color: #2a2a3d;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.card-destino h4 {
+  color: #f5a623;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.detalhes-rota {
+  color: #aaa;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* Estilos de Anotações (Diário Pessoal) */
+.card-anotacao {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.card-anotacao h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.card-anotacao p {
+  font-size: 14px;
+  color: var(--text-color);
+  opacity: 0.8;
+  margin-top: 6px;
+  white-space: pre-wrap;
+}
+
+.botoes-anotacao {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.botao-editar {
+  background-color: #f5a623;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.botao-editar:hover {
+  background-color: #ffb84d;
+}
+
+.botao-excluir {
+  background-color: #ff4d4d;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.botao-excluir:hover {
+  background-color: #ff8080;
+}
+
+/* Estilos do Calendário Visual */
+.calendario-visual {
+  margin-top: 20px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  padding: 24px;
+  color: var(--text-color);
+}
+
+.calendario-visual h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 16px;
+}
+
+.grid-calendario {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.dia-semana {
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.4;
+  text-transform: uppercase;
+  padding: 8px 0;
+}
+
+.dia-calendario {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+}
+
+.dia-calendario:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dia-calendario.ativo {
+  background-color: var(--accent-color);
+  color: #fff;
+}
+
+.dia-calendario.outro-mes {
+  opacity: 0.25;
+}
+
+.dia-com-evento::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #f5a623;
+}
+
+.dia-calendario.ativo.dia-com-evento::after {
+  background-color: #fff;
+}
+
+.dia-calendario.hoje {
+  background-color: #6c63ff;
+  color: #fff;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.painel-clima {
+  background-color: #2a2a3d;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.modal-dia {
+  background-color: #1e1e2f;
+  color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  width: 400px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.card-dia {
+  background-color: #2a2a3d;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.card-dia h4 {
+  color: #f5a623;
+  margin-bottom: 4px;
+}
+
+.modal-evento {
+  background-color: #1e1e2f;
+  color: #fff;
+  border-radius: 16px;
+  padding: 30px;
+  width: 500px;
+  box-shadow: 0 0 25px rgba(108, 99, 255, 0.4);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.modal-evento h3 {
+  color: #f5a623;
+  font-size: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.modal-evento input,
+.modal-evento textarea {
+  width: 100%;
+  background-color: #2a2a3d;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  color: #fff;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.campo-anotacoes {
+  height: 120px;
+  resize: none;
+}
+
+.modal-evento button {
+  background-color: #6c63ff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-evento button:hover {
+  background-color: #f5a623;
+}
+
+.icone-agenda {
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #6c63ff;
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Pedro Duarte Planner",
+  "description": "Planner diário pessoal e profissional para Pedro Henrique da Silva Duarte, consultor FTD Educação.",
+  "requestFramePermissions": ["geolocation"]
+}
