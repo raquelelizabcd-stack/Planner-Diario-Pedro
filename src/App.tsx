@@ -4304,6 +4304,15 @@ export default function App() {
           "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
         ];
 
+        const baixarComprovante = (url: string) => {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = url.split('/').pop() || 'comprovante';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        };
+
         const filteredReceipts = mesSelecionado !== null
           ? receipts.filter((nota) => {
               const dateObj = new Date(nota.date + 'T00:00:00');
@@ -4412,7 +4421,12 @@ export default function App() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                       {filteredReceipts.map((nota) => (
                         <div key={nota.id} className="relative group bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 hover:border-slate-600 transition-all shadow-sm">
-                          <img src={nota.url} alt="Comprovante Fiscal" className="w-full h-28 object-cover" />
+                          <img 
+                            src={nota.url} 
+                            alt="Comprovante Fiscal" 
+                            className="w-full h-28 object-cover cursor-pointer hover:opacity-80 transition" 
+                            onClick={() => baixarComprovante(nota.url)}
+                          />
                           <div className="p-2 bg-slate-900/90 flex flex-col gap-1">
                             <span className="text-[9px] text-slate-400 font-medium">{nota.date}</span>
                           </div>
