@@ -552,6 +552,12 @@ export default function App() {
   const [mesSelecionado, setMesSelecionado] = useState<number | null>(null);
   const [mostrarModalChurrasco, setMostrarModalChurrasco] = useState(false);
   const [novoItemChurrasco, setNovoItemChurrasco] = useState("");
+  const [itensChecklist, setItensChecklist] = useState<{ id: string; label: string; completed: boolean }[]>([
+    { id: 'reviewProposals', label: 'Revisar propostas', completed: false },
+    { id: 'prepareMaterial', label: 'Preparar material', completed: false },
+    { id: 'registerFeedback', label: 'Registrar feedback', completed: false },
+    { id: 'scheduleFollowUp', label: 'Agendar follow-up', completed: false }
+  ]);
 
   // Estados para os modais financeiros
   const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
@@ -561,6 +567,7 @@ export default function App() {
   const [financialObservation, setFinancialObservation] = useState('');
   const [financialDate, setFinancialDate] = useState('');
   const [filtroPeriodo, setFiltroPeriodo] = useState<'mes' | 'ano'>('mes');
+  const [lembretes, setLembretes] = useState<{ id: string; lembrete: string }[]>([]);
   
   // Estados para o modal de Agenda Profissional
   const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
@@ -906,6 +913,19 @@ export default function App() {
   useEffect(() => {
     const eventosSalvos = JSON.parse(localStorage.getItem('eventos') || '[]');
     setEventos(eventosSalvos);
+  }, []);
+
+  useEffect(() => {
+    const carregarLembretes = async () => {
+      const { data, error } = await supabase
+        .from('financial_transactions')
+        .select('id, lembrete')
+        .not('lembrete', 'is', null);
+      if (!error && data) {
+        setLembretes(data);
+      }
+    };
+    carregarLembretes();
   }, []);
 
   useEffect(() => {
@@ -2006,6 +2026,26 @@ export default function App() {
           [field]: !prev.work.checklist[field]
         }
       }
+    }));
+  };
+
+  const adicionarItemChecklist = () => {
+    const novoItem = prompt("Digite o nome do novo item:");
+    if (novoItem && novoItem.trim() !== "") {
+      const newId = Math.random().toString(36).substr(2, 9);
+      setItensChecklist(prev => [...prev, { id: newId, label: novoItem.trim(), completed: false }]);
+    }
+  };
+
+  const toggleItemChecklist = (id: string) => {
+    setItensChecklist(prev => prev.map(item => {
+      if (item.id === id) {
+        if (['reviewProposals', 'prepareMaterial', 'registerFeedback', 'scheduleFollowUp'].includes(id)) {
+          toggleWorkChecklist(id as keyof DailyPlan['work']['checklist']);
+        }
+        return { ...item, completed: !item.completed };
+      }
+      return item;
     }));
   };
 
@@ -3740,32 +3780,36 @@ export default function App() {
                   </div>
 
                   <div className="card-custom p-5 lg:p-8">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 rounded-lg" style={{ backgroundColor: '#10b98115', color: '#10b981' }}>
-                        <CheckSquare size={20} />
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg" style={{ backgroundColor: '#10b98115', color: '#10b981' }}>
+                          <CheckSquare size={20} />
+                        </div>
+                        <h2 className="text-xl font-bold">Checklist</h2>
                       </div>
-                      <h2 className="text-xl font-bold">Checklist</h2>
+                      <button onClick={adicionarItemChecklist} className="botao-adicionar">+</button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
-                      {[
-                        { id: 'reviewProposals', label: 'Revisar propostas' },
-                        { id: 'prepareMaterial', label: 'Preparar material' },
-                        { id: 'registerFeedback', label: 'Registrar feedback' },
-                        { id: 'scheduleFollowUp', label: 'Agendar follow-up' },
-                      ].map((item) => (
-                        <div 
-                          key={item.id}
-                          onClick={() => toggleWorkChecklist(item.id as keyof DailyPlan['work']['checklist'])}
-                          className="flex items-center justify-between p-3 rounded-xl border group cursor-pointer transition-all"
-                          style={{ backgroundColor: 'rgba(0,0,0,0.02)', borderColor: 'var(--border-color)' }}
-                        >
-                          <span className="text-xs font-bold opacity-70">{item.label}</span>
-                          {plan.work.checklist[item.id as keyof DailyPlan['work']['checklist']] ? 
-                            <CheckCircle2 className="text-emerald-500" size={18} /> : 
-                            <Circle className="opacity-20 group-hover:opacity-100" size={18} style={{ color: 'var(--accent-color)' }} />
-                          }
-                        </div>
-                      ))}
+                      {itensChecklist.map((item) => {
+                        const isCompleted = ['reviewProposals', 'prepareMaterial', 'registerFeedback', 'scheduleFollowUp'].includes(item.id)
+                          ? plan.work.checklist[item.id as keyof DailyPlan['work']['checklist']] || item.completed
+                          : item.completed;
+
+                        return (
+                          <div 
+                            key={item.id}
+                            onClick={() => toggleItemChecklist(item.id)}
+                            className="flex items-center justify-between p-3 rounded-xl border group cursor-pointer transition-all"
+                            style={{ backgroundColor: 'rgba(0,0,0,0.02)', borderColor: 'var(--border-color)' }}
+                          >
+                            <span className="text-xs font-bold opacity-70">{item.label}</span>
+                            {isCompleted ? 
+                              <CheckCircle2 className="text-emerald-500" size={18} /> : 
+                              <Circle className="opacity-20 group-hover:opacity-100" size={18} style={{ color: 'var(--accent-color)' }} />
+                            }
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

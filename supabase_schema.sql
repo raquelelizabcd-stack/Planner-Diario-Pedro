@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS public.financial_transactions (
     category TEXT NOT NULL, -- ou descrição
     observation TEXT DEFAULT '',
     status TEXT DEFAULT 'recebido', -- 'pendente' ou 'recebido' (usado para receitas)
+    lembrete TEXT DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
