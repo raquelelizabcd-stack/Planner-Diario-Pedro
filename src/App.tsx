@@ -78,7 +78,8 @@ import {
   Volume2,
   MapPin,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from "@google/genai";
@@ -319,7 +320,7 @@ const INITIAL_PLAN: DailyPlan = {
   }
 };
 
-type TabId = 'dashboard' | 'professional' | 'work' | 'financial' | 'personal' | 'calendar' | 'routes' | 'final' | 'settings' | 'assistant';
+type TabId = 'dashboard' | 'professional' | 'work' | 'financial' | 'prestacao-de-contas' | 'personal' | 'calendar' | 'routes' | 'final' | 'settings' | 'assistant';
 
 const Login = ({ onLogin }: { onLogin: () => void }) => {
   const [email, setEmail] = useState('pedroduarte1@gmail.com');
@@ -2448,6 +2449,7 @@ export default function App() {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'text-orange-600', bg: 'bg-orange-50' },
     { id: 'professional', label: 'Profissional', icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50' },
     { id: 'financial', label: 'Financeiro', icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { id: 'prestacao-de-contas', label: 'Prestação de Contas', icon: FileText, color: 'text-violet-600', bg: 'bg-violet-50' },
     { id: 'personal', label: 'Pessoal', icon: User, color: 'text-rose-600', bg: 'bg-rose-50' },
     { id: 'calendar', label: 'Calendário', icon: Calendar, color: 'text-blue-500', bg: 'bg-blue-50' },
     { id: 'settings', label: 'Configurações', icon: Settings, color: 'text-slate-600', bg: 'bg-slate-100' },
@@ -3951,7 +3953,7 @@ export default function App() {
                 </div>
               </div>
               <button 
-                onClick={() => setIsReceiptModalOpen(true)}
+                onClick={() => setActiveTab('prestacao-de-contas')}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 text-white px-6 py-3 rounded-xl text-xs font-bold hover:opacity-90 transition-all shadow-lg"
                 style={{ backgroundColor: 'var(--accent-color)', boxShadow: `0 10px 15px -3px ${plan.settings.visual.accentColor}33` }}
               >
@@ -3959,97 +3961,6 @@ export default function App() {
                 ABRIR PRESTAÇÃO DE CONTAS
               </button>
             </div>
-
-            {isReceiptModalOpen && (
-              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-slate-900 border border-slate-800 text-white rounded-[2rem] w-full max-w-2xl p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col gap-6">
-                  <button 
-                    onClick={() => { fecharCamera(); setIsReceiptModalOpen(false); }}
-                    className="absolute top-6 right-6 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all text-slate-400 hover:text-white"
-                  >
-                    <X size={20} />
-                  </button>
-
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
-                      <Wallet size={22} />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold">Prestação de Contas</h3>
-                      <p className="text-xs text-slate-400 font-medium">Gerencie e envie comprovantes fiscais</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {!isCameraActive ? (
-                      <button 
-                        onClick={abrirCamera}
-                        className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-3xl transition-all hover:bg-slate-850/30 group"
-                      >
-                        <Camera size={32} className="text-slate-400 group-hover:text-emerald-400 transition-colors" />
-                        <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Tirar Foto da Nota</span>
-                      </button>
-                    ) : (
-                      <div className="flex flex-col items-center gap-3 p-4 bg-black/35 rounded-3xl border border-slate-850 w-full">
-                        <video id="receipt-video" autoPlay playsInline className="w-full h-40 bg-black rounded-2xl object-cover"></video>
-                        <div className="flex gap-2 w-full">
-                          <button 
-                            onClick={tirarFoto}
-                            className="flex-grow py-2.5 bg-emerald-500 text-white rounded-xl text-xs font-bold hover:bg-emerald-600 transition-all shadow-lg"
-                          >
-                            CAPTURAR
-                          </button>
-                          <button 
-                            onClick={fecharCamera}
-                            className="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-700 transition-all"
-                          >
-                            CANCELAR
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="relative flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-3xl transition-all hover:bg-slate-850/30 group cursor-pointer">
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleUploadNota} 
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                      />
-                      <Upload size={32} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
-                      <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Enviar Nota Fiscal</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Galeria de Comprovantes ({receipts.length})</h4>
-                    
-                    {receipts.length === 0 ? (
-                      <div className="p-8 border border-slate-800 rounded-2xl text-center text-slate-500 italic text-xs">
-                        Nenhuma nota fiscal armazenada até o momento.
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                        {receipts.map((nota) => (
-                          <div key={nota.id} className="relative group bg-slate-850 rounded-2xl overflow-hidden border border-slate-800 hover:border-slate-700 transition-all shadow-sm">
-                            <img src={nota.url} alt="Comprovante Fiscal" className="w-full h-28 object-cover" />
-                            <div className="p-2 bg-slate-900/90 flex flex-col gap-1">
-                              <span className="text-[9px] text-slate-400 font-medium">{nota.date}</span>
-                            </div>
-                            <button 
-                              onClick={() => removerNota(nota.id)}
-                              className="absolute top-2 right-2 p-1.5 bg-red-600/90 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
           </motion.div>
         );
       }
@@ -4383,6 +4294,91 @@ export default function App() {
                 </div>
               </div>
             )}
+          </motion.div>
+        );
+      }
+      case 'prestacao-de-contas': {
+        return (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8 pb-20">
+            <div className="card-custom p-8 text-white" style={{ backgroundColor: '#1e1e2f' }}>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
+                  <Wallet size={22} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Prestação de Contas</h3>
+                  <p className="text-xs text-slate-400 font-medium">Gerencie e envie comprovantes fiscais</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                {!isCameraActive ? (
+                  <button 
+                    onClick={abrirCamera}
+                    className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-3xl transition-all hover:bg-slate-800/30 group bg-transparent text-left cursor-pointer"
+                  >
+                    <Camera size={32} className="text-slate-400 group-hover:text-emerald-400 transition-colors" />
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Tirar Foto da Nota</span>
+                  </button>
+                ) : (
+                  <div className="flex flex-col items-center gap-3 p-4 bg-black/35 rounded-3xl border border-slate-800 w-full">
+                    <video id="receipt-video" autoPlay playsInline className="w-full h-40 bg-black rounded-2xl object-cover"></video>
+                    <div className="flex gap-2 w-full">
+                      <button 
+                        onClick={tirarFoto}
+                        className="flex-grow py-2.5 bg-emerald-500 text-white rounded-xl text-xs font-bold hover:bg-emerald-600 transition-all shadow-lg"
+                      >
+                        CAPTURAR
+                      </button>
+                      <button 
+                        onClick={fecharCamera}
+                        className="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-700 transition-all"
+                      >
+                        CANCELAR
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="relative flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-3xl transition-all hover:bg-slate-800/30 group cursor-pointer">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleUploadNota} 
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  <Upload size={32} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Enviar Nota Fiscal</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Galeria de Comprovantes ({receipts.length})</h4>
+                
+                {receipts.length === 0 ? (
+                  <div className="p-8 border border-slate-800 rounded-2xl text-center text-slate-500 italic text-xs">
+                    Nenhuma nota fiscal armazenada até o momento.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {receipts.map((nota) => (
+                      <div key={nota.id} className="relative group bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 hover:border-slate-600 transition-all shadow-sm">
+                        <img src={nota.url} alt="Comprovante Fiscal" className="w-full h-28 object-cover" />
+                        <div className="p-2 bg-slate-900/90 flex flex-col gap-1">
+                          <span className="text-[9px] text-slate-400 font-medium">{nota.date}</span>
+                        </div>
+                        <button 
+                          onClick={() => removerNota(nota.id)}
+                          className="absolute top-2 right-2 p-1.5 bg-red-600/90 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </motion.div>
         );
       }
