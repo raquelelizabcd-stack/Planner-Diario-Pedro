@@ -568,6 +568,8 @@ export default function App() {
   const [financialDate, setFinancialDate] = useState('');
   const [filtroPeriodo, setFiltroPeriodo] = useState<'mes' | 'ano'>('mes');
   const [lembretes, setLembretes] = useState<{ id: string; lembrete: string }[]>([]);
+  const [mostrarModalLembrete, setMostrarModalLembrete] = useState(false);
+  const [novoLembreteText, setNovoLembreteText] = useState("");
   
   // Estados para o modal de Agenda Profissional
   const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
@@ -2834,8 +2836,7 @@ export default function App() {
   };
 
   const adicionarLembrete = async () => {
-    const novoLembrete = prompt("Digite o novo lembrete:");
-    if (novoLembrete && novoLembrete.trim() !== "") {
+    if (novoLembreteText.trim() !== "") {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
@@ -2849,13 +2850,15 @@ export default function App() {
               date: new Date().toISOString().split('T')[0],
               value: 0,
               category: 'Lembrete',
-              lembrete: novoLembrete.trim(),
+              lembrete: novoLembreteText.trim(),
               created_at: new Date()
             }])
             .select('id, lembrete');
           
           if (!error && data) {
             setLembretes(prev => [...prev, ...data]);
+            setNovoLembreteText("");
+            setMostrarModalLembrete(false);
           } else {
             console.error('Erro ao adicionar lembrete no Supabase:', error);
             alert('❌ Falha ao adicionar lembrete no Supabase.');
@@ -4287,7 +4290,7 @@ export default function App() {
                     <div className="p-2 rounded-lg" style={{ backgroundColor: '#f59e0b15', color: '#f59e0b' }}><Clock size={20} /></div>
                     <h2 className="text-xl font-bold">Lembretes</h2>
                   </div>
-                  <button onClick={adicionarLembrete} className="botao-adicionar">+</button>
+                  <button onClick={() => setMostrarModalLembrete(true)} className="botao-adicionar">+</button>
                 </div>
                 <ul className="space-y-3">
                   {lembretes.map((item) => (
@@ -4302,6 +4305,34 @@ export default function App() {
                     <li className="text-xs opacity-40 text-center py-8 italic">Nenhum lembrete salvo.</li>
                   )}
                 </ul>
+
+                {mostrarModalLembrete && (
+                  <div className="modal-overlay text-left">
+                    <div className="modal-content">
+                      <h3 className="modal-title font-bold">Adicionar novo lembrete</h3>
+                      <input
+                        type="text"
+                        value={novoLembreteText}
+                        onChange={(e) => setNovoLembreteText(e.target.value)}
+                        placeholder="Digite o lembrete..."
+                        className="modal-input"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && novoLembreteText.trim() !== "") {
+                            adicionarLembrete();
+                          }
+                        }}
+                      />
+                      <div className="modal-actions">
+                        <button onClick={adicionarLembrete} className="modal-btn-ok">Salvar</button>
+                        <button onClick={() => {
+                          setNovoLembreteText("");
+                          setMostrarModalLembrete(false);
+                        }} className="modal-btn-cancel">Cancelar</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Charts */}
