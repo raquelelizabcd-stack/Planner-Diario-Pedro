@@ -4615,7 +4615,19 @@ export default function App() {
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Lista de Compras</label>
                       <button 
                         onClick={() => {
-                          // Temporariamente desativado para remover o window.prompt()
+                          const novoItem = prompt("Digite o nome do novo item:");
+                          if (novoItem && novoItem.trim() !== "") {
+                            setPlan(prev => ({
+                              ...prev,
+                              personal: {
+                                ...prev.personal,
+                                bbqGastronomy: {
+                                  ...prev.personal.bbqGastronomy,
+                                  shoppingList: [...prev.personal.bbqGastronomy.shoppingList, novoItem.trim()]
+                                }
+                              }
+                            }));
+                          }
                         }}
                         className="text-orange-600 hover:bg-orange-50 p-1 rounded-full transition-colors"
                       >
