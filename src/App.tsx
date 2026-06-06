@@ -550,6 +550,8 @@ export default function App() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [mesSelecionado, setMesSelecionado] = useState<number | null>(null);
+  const [mostrarModalChurrasco, setMostrarModalChurrasco] = useState(false);
+  const [novoItemChurrasco, setNovoItemChurrasco] = useState("");
 
   // Estados para os modais financeiros
   const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
@@ -4658,21 +4660,7 @@ export default function App() {
                     <div className="flex justify-between items-center mb-3">
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Lista de Compras</label>
                       <button 
-                        onClick={() => {
-                          const novoItem = prompt("Digite o nome do novo item:");
-                          if (novoItem && novoItem.trim() !== "") {
-                            setPlan(prev => ({
-                              ...prev,
-                              personal: {
-                                ...prev.personal,
-                                bbqGastronomy: {
-                                  ...prev.personal.bbqGastronomy,
-                                  shoppingList: [...prev.personal.bbqGastronomy.shoppingList, novoItem.trim()]
-                                }
-                              }
-                            }));
-                          }
-                        }}
+                        onClick={() => setMostrarModalChurrasco(true)}
                         className="text-orange-600 hover:bg-orange-50 p-1 rounded-full transition-colors"
                       >
                         <Plus size={16} />
@@ -4691,6 +4679,70 @@ export default function App() {
                         </span>
                       ))}
                     </div>
+
+                    {mostrarModalChurrasco && (
+                      <div className="modal-overlay">
+                        <div className="modal-content">
+                          <h3 className="modal-title">Adicionar novo item</h3>
+                          <input
+                            type="text"
+                            value={novoItemChurrasco}
+                            onChange={(e) => setNovoItemChurrasco(e.target.value)}
+                            placeholder="Digite o nome do item..."
+                            className="modal-input"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && novoItemChurrasco.trim() !== "") {
+                                setPlan(prev => ({
+                                  ...prev,
+                                  personal: {
+                                    ...prev.personal,
+                                    bbqGastronomy: {
+                                      ...prev.personal.bbqGastronomy,
+                                      shoppingList: [...prev.personal.bbqGastronomy.shoppingList, novoItemChurrasco.trim()]
+                                    }
+                                  }
+                                }));
+                                setNovoItemChurrasco("");
+                                setMostrarModalChurrasco(false);
+                              }
+                            }}
+                          />
+                          <div className="modal-actions">
+                            <button 
+                              onClick={() => {
+                                if (novoItemChurrasco.trim() !== "") {
+                                  setPlan(prev => ({
+                                    ...prev,
+                                    personal: {
+                                      ...prev.personal,
+                                      bbqGastronomy: {
+                                        ...prev.personal.bbqGastronomy,
+                                        shoppingList: [...prev.personal.bbqGastronomy.shoppingList, novoItemChurrasco.trim()]
+                                      }
+                                    }
+                                  }));
+                                  setNovoItemChurrasco("");
+                                  setMostrarModalChurrasco(false);
+                                }
+                              }} 
+                              className="modal-btn-ok"
+                            >
+                              Adicionar
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setNovoItemChurrasco("");
+                                setMostrarModalChurrasco(false);
+                              }} 
+                              className="modal-btn-cancel"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
