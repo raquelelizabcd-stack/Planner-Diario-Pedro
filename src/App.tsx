@@ -2487,7 +2487,7 @@ export default function App() {
   const dailyOutflows = filtradosDespesas
     .reduce((acc, e) => acc + e.value, 0);
 
-  const projectedBalance = plan.financial.initialBalance + dailyInflows - dailyOutflows;
+  const projectedBalance = dailyInflows - dailyOutflows;
 
   const totalReceived = filtradosReceitas
     .filter(r => r.status === 'recebido')
@@ -4050,7 +4050,7 @@ export default function App() {
                   <span className="text-[10px] font-bold uppercase tracking-widest">Saldo Projetado</span>
                 </div>
                 <p className="text-xl font-black" style={{ color: 'var(--accent-color)' }}>
-                  R$ {plan.financial.initialBalance ? projectedBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+                  R$ {projectedBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
             </div>
