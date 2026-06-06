@@ -2833,6 +2833,62 @@ export default function App() {
     }
   };
 
+  const adicionarLembrete = async () => {
+    const novoLembrete = prompt("Digite o novo lembrete:");
+    if (novoLembrete && novoLembrete.trim() !== "") {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const newId = Math.random().toString(36).substr(2, 9);
+          const { data, error } = await supabase
+            .from('financial_transactions')
+            .insert([{
+              id: newId,
+              user_id: session.user.id,
+              type: 'reminder',
+              date: new Date().toISOString().split('T')[0],
+              value: 0,
+              category: 'Lembrete',
+              lembrete: novoLembrete.trim(),
+              created_at: new Date()
+            }])
+            .select('id, lembrete');
+          
+          if (!error && data) {
+            setLembretes(prev => [...prev, ...data]);
+          } else {
+            console.error('Erro ao adicionar lembrete no Supabase:', error);
+            alert('❌ Falha ao adicionar lembrete no Supabase.');
+          }
+        } else {
+          alert('❌ Usuário não autenticado.');
+        }
+      } catch (err) {
+        console.error('Erro ao adicionar lembrete:', err);
+      }
+    }
+  };
+
+  const excluirLembrete = async (id: string) => {
+    if (confirm('Deseja realmente excluir este lembrete?')) {
+      try {
+        const { error } = await supabase
+          .from('financial_transactions')
+          .delete()
+          .eq('id', id);
+        
+        if (!error) {
+          setLembretes(prev => prev.filter((item) => item.id !== id));
+        } else {
+          console.error('Erro ao excluir lembrete no Supabase:', error);
+          alert('❌ Falha ao excluir lembrete no Supabase.');
+        }
+      } catch (err) {
+        console.error('Erro ao excluir lembrete:', err);
+      }
+    }
+  };
+
 
   const moveDestination = (index: number, direction: 'up' | 'down') => {
     const newDestinations = [...plan.work.routes.currentDestinations];
@@ -4223,28 +4279,28 @@ export default function App() {
                 </div>
               </div>
             </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Payment Reminders */}
+              {/* Lembretes Financeiros */}
               <div className="card-custom p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: '#f59e0b15', color: '#f59e0b' }}><Clock size={20} /></div>
-                  <h2 className="text-xl font-bold">Lembretes</h2>
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: '#f59e0b15', color: '#f59e0b' }}><Clock size={20} /></div>
+                    <h2 className="text-xl font-bold">Lembretes</h2>
+                  </div>
+                  <button onClick={adicionarLembrete} className="botao-adicionar">+</button>
                 </div>
                 <ul className="space-y-3">
-                  {plan.financial.paymentReminders.map((rem) => (
-                    <li 
-                      key={rem.id} 
-                      onClick={() => togglePaymentStatus(rem.id)}
-                      className={`flex justify-between items-center p-4 rounded-2xl border cursor-pointer transition-all ${getPaymentStatusColor(rem)}`}
-                    >
-                      <div>
-                        <p className="font-bold text-sm">{rem.description}</p>
-                        <p className="text-[10px] opacity-70">Vence em: {new Date(rem.dueDate).toLocaleDateString('pt-BR')}</p>
-                      </div>
-                      {rem.status === 'pago' ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                  {lembretes.map((item) => (
+                    <li key={item.id} className="p-4 bg-black/5 rounded-2xl border border-transparent flex justify-between items-center text-xs font-bold opacity-70">
+                      <span>{item.lembrete}</span>
+                      <button onClick={() => excluirLembrete(item.id)} className="p-1 text-red-500 hover:bg-red-50 rounded transition-all ml-2">
+                        <Trash2 size={14} />
+                      </button>
                     </li>
                   ))}
+                  {lembretes.length === 0 && (
+                    <li className="text-xs opacity-40 text-center py-8 italic">Nenhum lembrete salvo.</li>
+                  )}
                 </ul>
               </div>
 
