@@ -177,7 +177,6 @@ app.post('/api/calendar/events/delete', async (req, res) => {
   }
 });
 
-// Vite middleware
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -198,4 +197,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;
