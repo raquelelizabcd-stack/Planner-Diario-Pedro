@@ -1449,6 +1449,32 @@ export default function App() {
     setIsEventModalOpen(true);
   };
 
+  const criarEventoGoogle = async (evento: any) => {
+    if (!plan.calendar.googleTokens) return;
+    try {
+      const startDateTime = evento.data && evento.horaInicio ? `${evento.data}T${evento.horaInicio}:00` : new Date().toISOString();
+      const endDateTime = evento.data && evento.horaFim ? `${evento.data}T${evento.horaFim}:00` : (evento.data && evento.horaInicio ? `${evento.data}T${evento.horaInicio}:00` : new Date().toISOString());
+      
+      const response = await fetch('/api/calendar/events/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          tokens: plan.calendar.googleTokens, 
+          event: {
+            summary: evento.titulo,
+            description: evento.anotacoes,
+            location: evento.local,
+            start: { dateTime: startDateTime },
+            end: { dateTime: endDateTime }
+          }
+        })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating event on Google Calendar:', error);
+    }
+  };
+
   const salvarEvento = async () => {
     if (!titulo || !data || !horaInicio) {
       alert("Preencha os campos obrigatórios antes de salvar.");
@@ -1500,6 +1526,11 @@ export default function App() {
       }
     } catch (dbErr) {
       console.error('Erro de banco de dados ao salvar evento:', dbErr);
+    }
+
+    // Se estiver conectado ao Google, envia para o Google Calendar
+    if (plan.calendar.googleTokens) {
+      await criarEventoGoogle(novoEvento);
     }
 
     // Fecha o modal
