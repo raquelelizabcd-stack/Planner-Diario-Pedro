@@ -2555,6 +2555,43 @@ export default function App() {
     setIsCameraActive(false);
   };
 
+  const salvarFoto = async (foto: string) => {
+    try {
+      const comprovantes = JSON.parse(localStorage.getItem('comprovantes') || '[]');
+      comprovantes.push({ url: foto, data: new Date().toLocaleString() });
+      localStorage.setItem('comprovantes', JSON.stringify(comprovantes));
+    } catch (e) {
+      console.error('Erro ao salvar no localStorage comprovantes:', e);
+    }
+
+    const newId = Math.random().toString(36).substr(2, 9);
+    const dateStr = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const newReceipt = {
+      id: newId,
+      url: foto,
+      date: dateStr
+    };
+    setReceipts(prev => [newReceipt, ...prev]);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase
+          .from('receipts')
+          .insert([{
+            id: newId,
+            user_id: session.user.id,
+            image_url: foto,
+            date: dateStr
+          }]);
+      }
+    } catch (err) {
+      console.error('Erro ao salvar foto no Supabase:', err);
+    }
+
+    alert('✅ Foto salva com sucesso!');
+  };
+
   const tirarFoto = async () => {
     const video = document.getElementById('receipt-video') as HTMLVideoElement;
     if (!video) return;
@@ -2565,32 +2602,9 @@ export default function App() {
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const url = canvas.toDataURL('image/jpeg');
-      const newId = Math.random().toString(36).substr(2, 9);
-      const dateStr = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const newReceipt = {
-        id: newId,
-        url,
-        date: dateStr
-      };
-      setReceipts(prev => [newReceipt, ...prev]);
+      const url = canvas.toDataURL('image/png');
+      await salvarFoto(url);
       fecharCamera();
-
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          await supabase
-            .from('receipts')
-            .insert([{
-              id: newId,
-              user_id: session.user.id,
-              image_url: url,
-              date: dateStr
-            }]);
-        }
-      } catch (err) {
-        console.error('Erro ao salvar foto no Supabase:', err);
-      }
     }
   };
 
@@ -2742,6 +2756,38 @@ export default function App() {
       }
     } catch (err) {
       console.error('Erro ao salvar rota no Supabase:', err);
+    }
+  };
+
+  const excluirRota = async (id: string) => {
+    if (confirm('Deseja realmente excluir esta rota?')) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const { error } = await supabase
+            .from('route_history')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', session.user.id);
+
+          if (error) throw error;
+        }
+
+        setPlan(prev => ({
+          ...prev,
+          work: {
+            ...prev.work,
+            routes: {
+              ...prev.work.routes,
+              history: prev.work.routes.history.filter(h => h.id !== id)
+            }
+          }
+        }));
+        alert('✅ Rota excluída com sucesso!');
+      } catch (err: any) {
+        console.error('Erro ao excluir rota:', err.message || err);
+        alert('❌ Falha ao excluir rota. Verifique a conexão com o Supabase.');
+      }
     }
   };
 
@@ -3789,17 +3835,7 @@ export default function App() {
                             <p className="text-[10px] opacity-40">{new Date(item.date).toLocaleDateString('pt-BR')}</p>
                           </div>
                           <button 
-                            onClick={() => setPlan(prev => ({
-                              ...prev,
-                              work: {
-                                ...prev.work,
-                                ...prev.work,
-                                routes: {
-                                  ...prev.work.routes,
-                                  history: prev.work.routes.history.filter(h => h.id !== item.id)
-                                }
-                              }
-                            }))}
+                            onClick={() => excluirRota(item.id)}
                             className="p-1 opacity-0 group-hover:opacity-100 text-red-500 hover:bg-red-50 rounded transition-all"
                           >
                             <Trash2 size={14} />
@@ -4315,8 +4351,12 @@ export default function App() {
 
         const filteredReceipts = mesSelecionado !== null
           ? receipts.filter((nota) => {
-              const dateObj = new Date(nota.date + 'T00:00:00');
-              return dateObj.getMonth() === mesSelecionado;
+              const parts = nota.date.split('/');
+              if (parts.length >= 2) {
+                const month = parseInt(parts[1], 10) - 1; // 0-indexed month
+                return month === mesSelecionado;
+              }
+              return false;
             })
           : [];
 
@@ -4390,8 +4430,12 @@ export default function App() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {meses.map((mes, index) => {
                       const count = receipts.filter(nota => {
-                        const dateObj = new Date(nota.date + 'T00:00:00');
-                        return dateObj.getMonth() === index;
+                        const parts = nota.date.split('/');
+                        if (parts.length >= 2) {
+                          const month = parseInt(parts[1], 10) - 1;
+                          return month === index;
+                        }
+                        return false;
                       }).length;
 
                       return (
