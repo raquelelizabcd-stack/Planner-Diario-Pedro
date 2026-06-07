@@ -135,3 +135,17 @@ CREATE TABLE IF NOT EXISTS public.receipts (
 ALTER TABLE public.receipts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can perform all actions on own receipts" ON public.receipts 
     FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- 8. Tabela personal_files (Pastas e Arquivos Pessoais)
+CREATE TABLE IF NOT EXISTS public.personal_files (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    folder_name TEXT NOT NULL,
+    file_name TEXT DEFAULT NULL,
+    file_url TEXT DEFAULT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.personal_files ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can perform all actions on own files" ON public.personal_files 
+    FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);

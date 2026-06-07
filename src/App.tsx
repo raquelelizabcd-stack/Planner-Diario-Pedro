@@ -79,7 +79,10 @@ import {
   MapPin,
   ChevronUp,
   ChevronDown,
-  FileText
+  FileText,
+  FolderClosed,
+  Folder,
+  FolderOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from "@google/genai";
@@ -571,6 +574,15 @@ export default function App() {
   const [mostrarModalLembrete, setMostrarModalLembrete] = useState(false);
   const [novoLembreteText, setNovoLembreteText] = useState("");
   
+  // Estados para pastas e upload de arquivos
+  const [pastas, setPastas] = useState<{ id: string; folder_name: string }[]>([]);
+  const [mostrarModalNovaPasta, setMostrarModalNovaPasta] = useState(false);
+  const [nomePasta, setNomePasta] = useState("");
+  const [arquivos, setArquivos] = useState<{ id: string; file_name: string; file_url: string }[]>([]);
+  const [pastaSelecionada, setPastaSelecionada] = useState<{ id: string; folder_name: string } | null>(null);
+  const [mostrarModalUpload, setMostrarModalUpload] = useState(false);
+  const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
+  
   // Estados para o modal de Agenda Profissional
   const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
   const [agendaCity, setAgendaCity] = useState('');
@@ -879,6 +891,16 @@ export default function App() {
           url: r.image_url,
           date: r.date
         })));
+      }
+
+      const { data: foldersData } = await supabase
+        .from('personal_files')
+        .select('id, folder_name')
+        .is('file_name', null)
+        .eq('user_id', userId);
+
+      if (foldersData) {
+        setPastas(foldersData);
       }
 
     } catch (error) {
@@ -2890,6 +2912,116 @@ export default function App() {
         console.error('Erro ao excluir lembrete:', err);
       }
     }
+  };
+
+  const abrirModalNovaPasta = () => setMostrarModalNovaPasta(true);
+  const fecharModalNovaPasta = () => setMostrarModalNovaPasta(false);
+
+  const criarPasta = async () => {
+    if (nomePasta.trim() !== "") {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const { data, error } = await supabase
+            .from('personal_files')
+            .insert([{ folder_name: nomePasta.trim(), user_id: session.user.id }])
+            .select();
+          if (!error && data) {
+            setPastas(prev => [...prev, ...data]);
+            setNomePasta("");
+            fecharModalNovaPasta();
+          } else {
+            console.error('Erro ao criar pasta no Supabase:', error);
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao criar pasta:', e);
+      }
+    }
+  };
+
+  const abrirPasta = async (pasta: { id: string; folder_name: string }) => {
+    setPastaSelecionada(pasta);
+    try {
+      const { data, error } = await supabase
+        .from('personal_files')
+        .select('id, file_name, file_url')
+        .eq('folder_name', pasta.folder_name)
+        .not('file_name', 'is', null);
+      if (!error && data) {
+        setArquivos(data);
+      } else {
+        console.error('Erro ao buscar arquivos:', error);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const abrirModalUpload = () => setMostrarModalUpload(true);
+  const fecharModalUpload = () => setMostrarModalUpload(false);
+
+  const enviarArquivo = async () => {
+    if (arquivoSelecionado && pastaSelecionada) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            const fileUrl = reader.result as string;
+            const { data, error } = await supabase
+              .from('personal_files')
+              .insert([
+                {
+                  folder_name: pastaSelecionada.folder_name,
+                  file_name: arquivoSelecionado.name,
+                  file_url: fileUrl,
+                  user_id: session.user.id
+                }
+              ])
+              .select();
+            if (!error && data) {
+              setArquivos(prev => [...prev, ...data]);
+              setArquivoSelecionado(null);
+              fecharModalUpload();
+            } else {
+              console.error('Erro ao salvar arquivo no Supabase:', error);
+              alert('Erro ao enviar arquivo para o Supabase.');
+            }
+          };
+          reader.readAsDataURL(arquivoSelecionado);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  const excluirArquivo = async (id: string) => {
+    if (confirm('Deseja realmente excluir este arquivo?')) {
+      try {
+        const { error } = await supabase
+          .from('personal_files')
+          .delete()
+          .eq('id', id);
+        if (!error) {
+          setArquivos(prev => prev.filter((a) => a.id !== id));
+        } else {
+          console.error('Erro ao excluir arquivo:', error);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  const baixarArquivo = (url: string, name: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
 
@@ -5010,6 +5142,137 @@ export default function App() {
                 </p>
               </div>
             </div>
+
+            {/* Pastas Pessoais e Upload de Arquivos */}
+            <div className="card-custom p-8 mt-8">
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: `${plan.settings.visual.accentColor}15`, color: 'var(--accent-color)' }}><FolderClosed size={24} /></div>
+                  <h2 className="text-2xl font-bold">Pastas Pessoais</h2>
+                </div>
+                <button onClick={abrirModalNovaPasta} className="botao-adicionar">+</button>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
+                {pastas.map((pasta) => (
+                  <div 
+                    key={pasta.id} 
+                    onClick={() => abrirPasta(pasta)} 
+                    className={`card-mes p-4 text-center cursor-pointer hover:bg-slate-800 transition flex flex-col items-center justify-center gap-2 border ${pastaSelecionada?.folder_name === pasta.folder_name ? 'border-accent' : 'border-slate-800'}`}
+                    style={{ backgroundColor: pastaSelecionada?.folder_name === pasta.folder_name ? `${plan.settings.visual.accentColor}10` : '#1e1e2f' }}
+                  >
+                    <Folder size={32} className="text-amber-500" />
+                    <span className="text-xs font-bold text-white block truncate max-w-full">{pasta.folder_name}</span>
+                  </div>
+                ))}
+                {pastas.length === 0 && (
+                  <p className="text-xs opacity-40 text-center col-span-full py-6 italic">Nenhuma pasta criada. Clique no "+" para adicionar.</p>
+                )}
+              </div>
+
+              {pastaSelecionada && (
+                <div className="mt-6 p-6 rounded-3xl border border-slate-800 bg-black/5 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-bold flex items-center gap-2 text-white">
+                      <FolderOpen size={20} className="text-amber-500" />
+                      {pastaSelecionada.folder_name}
+                    </h3>
+                    <button 
+                      onClick={abrirModalUpload} 
+                      className="px-4 py-2 bg-accent text-white rounded-xl text-xs font-bold hover:opacity-90 transition flex items-center gap-1.5"
+                    >
+                      <Upload size={14} /> Enviar arquivo
+                    </button>
+                  </div>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="opacity-40 border-b border-slate-800">
+                          <th className="pb-3 font-bold uppercase tracking-widest text-[10px]">Nome do Arquivo</th>
+                          <th className="pb-3 text-right"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/50">
+                        {arquivos.map((a) => (
+                          <tr key={a.id} className="hover:bg-black/10 transition-colors">
+                            <td className="py-3 font-bold text-xs">
+                              <span 
+                                className="cursor-pointer hover:underline flex items-center gap-2" 
+                                style={{ color: 'var(--accent-color)' }}
+                                onClick={() => baixarArquivo(a.file_url, a.file_name)}
+                              >
+                                <FileText size={14} />
+                                {a.file_name}
+                              </span>
+                            </td>
+                            <td className="py-3 text-right">
+                              <button 
+                                onClick={() => excluirArquivo(a.id)} 
+                                className="p-1 text-red-500 hover:bg-red-50/10 rounded transition-all"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {arquivos.length === 0 && (
+                          <tr>
+                            <td colSpan={2} className="py-8 text-center opacity-40 italic text-xs">Nenhum arquivo nesta pasta.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal para criar nova pasta */}
+            {mostrarModalNovaPasta && (
+              <div className="modal-overlay text-left">
+                <div className="modal-content">
+                  <h3 className="modal-title font-bold text-white">Criar nova pasta</h3>
+                  <input
+                    type="text"
+                    value={nomePasta}
+                    onChange={(e) => setNomePasta(e.target.value)}
+                    placeholder="Digite o nome da pasta (ex: Fotos)"
+                    className="modal-input"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && nomePasta.trim() !== "") {
+                        criarPasta();
+                      }
+                    }}
+                  />
+                  <div className="modal-actions">
+                    <button onClick={criarPasta} className="modal-btn-ok bg-accent text-white font-bold">Criar</button>
+                    <button onClick={fecharModalNovaPasta} className="modal-btn-cancel text-white font-bold">Cancelar</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Modal para upload de arquivo */}
+            {mostrarModalUpload && (
+              <div className="modal-overlay text-left">
+                <div className="modal-content">
+                  <h3 className="modal-title font-bold text-white">Enviar arquivo para {pastaSelecionada?.folder_name}</h3>
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onChange={(e) => setArquivoSelecionado(e.target.files?.[0] || null)}
+                    className="modal-input"
+                    autoFocus
+                  />
+                  <div className="modal-actions">
+                    <button onClick={enviarArquivo} className="modal-btn-ok bg-accent text-white font-bold">Salvar</button>
+                    <button onClick={fecharModalUpload} className="modal-btn-cancel text-white font-bold">Cancelar</button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Modal para Adicionar/Editar Anotação */}
             {modalAberto && (
